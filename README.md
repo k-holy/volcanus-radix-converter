@@ -1,6 +1,9 @@
 Volcanus\RadixConverter
 ===============
 
+[![Latest Stable Version](https://poser.pugx.org/volcanus/radix-converter/v/stable.png)](https://packagist.org/packages/volcanus/radix-converter)
+[![Build Status](https://travis-ci.org/k-holy/volcanus-radix-converter.png?branch=master)](https://travis-ci.org/k-holy/volcanus-radix-converter)
+
 ##RadixConverter
 
 N進数への変換を行うためのクラスです。
