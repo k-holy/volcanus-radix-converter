@@ -119,7 +119,7 @@ class RadixConverterTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testRaiseExceptionWhenNotAcceptLong()
 	{
-		$this->converter->config('acceptLong', false)->encode('9223372036854775808');
+		$this->converter->config('acceptLong', false)->encode(strval(PHP_INT_MAX + 1));
 	}
 
 	public function testToString()

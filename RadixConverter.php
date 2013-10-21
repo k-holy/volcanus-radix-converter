@@ -220,7 +220,7 @@ class RadixConverter
 			throw new \InvalidArgumentException(
 				sprintf('The value "%s" includes other than number.', $number));
 		}
-		if (!$acceptLong && PHP_INT_MAX < floatval($number)) {
+		if (!$acceptLong && (PHP_INT_MAX < floatval($number))) {
 			throw new \InvalidArgumentException(
 				sprintf('The value "%s" is too large.', $number));
 		}
