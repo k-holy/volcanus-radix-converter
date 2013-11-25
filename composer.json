@@ -1,8 +1,8 @@
 {
     "name": "volcanus/radix-converter",
-    "type": "library",
     "homepage": "https://github.com/k-holy/volcanus-radix-converter",
-    "version": "0.1.1",
+    "type": "library",
+    "version": "0.1.2",
     "license": "MIT",
     "authors": [
         {
@@ -10,12 +10,15 @@
             "email": "k.holy74@gmail.com"
         }
     ],
+    "autoload": {
+        "psr-0": { "Volcanus\\RadixConverter": "." }
+    },
+    "target-dir": "Volcanus/RadixConverter",
     "require": {
         "php": ">=5.3",
         "ext-bcmath" : "*"
     },
-    "autoload": {
-        "psr-0": { "Volcanus\\RadixConverter": "" }
-    },
-    "target-dir": "Volcanus/RadixConverter"
+    "require-dev": {
+        "satooshi/php-coveralls": "dev-master"
+    }
 }
