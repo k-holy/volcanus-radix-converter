@@ -3,6 +3,7 @@ Volcanus\RadixConverter
 
 [![Latest Stable Version](https://poser.pugx.org/volcanus/radix-converter/v/stable.png)](https://packagist.org/packages/volcanus/radix-converter)
 [![Build Status](https://travis-ci.org/k-holy/volcanus-radix-converter.png?branch=master)](https://travis-ci.org/k-holy/volcanus-radix-converter)
+[![Coverage Status](https://coveralls.io/repos/k-holy/volcanus-radix-converter/badge.png?branch=master)](https://coveralls.io/r/k-holy/volcanus-radix-converter?branch=master)
 
 ##RadixConverter
 
