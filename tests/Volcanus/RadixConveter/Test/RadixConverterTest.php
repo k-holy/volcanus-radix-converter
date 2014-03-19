@@ -318,20 +318,20 @@ class RadixConverterTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals(228, RadixConverter::decode('UNKO', 'OKNU'));
 	}
 
-	/**
-	 * @requires extension bcmath
-	 */
 	public function testEncodeByCallStaticWithMapAndAcceptLong()
 	{
+		if (!extension_loaded('bcmath') && !extension_loaded('gmp')) {
+			$this->markTestSkipped('BcMath extension or GMP extension is required.');
+		}
 		$this->assertEquals('2lkCB2', RadixConverter::encode('2147483648', RadixConverter::MAP_ALPHANUMERIC_62, true));
 		$this->assertEquals('aZl8N0y58M8', RadixConverter::encode('9223372036854775808', RadixConverter::MAP_ALPHANUMERIC_62, true));
 	}
 
-	/**
-	 * @requires extension bcmath
-	 */
 	public function testDecodeByCallStaticWithMapAndAcceptLong()
 	{
+		if (!extension_loaded('bcmath') && !extension_loaded('gmp')) {
+			$this->markTestSkipped('BcMath extension or GMP extension is required.');
+		}
 		$this->assertEquals('2147483648', RadixConverter::decode('2lkCB2', RadixConverter::MAP_ALPHANUMERIC_62, true));
 		$this->assertEquals('9223372036854775808', RadixConverter::decode('aZl8N0y58M8', RadixConverter::MAP_ALPHANUMERIC_62, true));
 	}
