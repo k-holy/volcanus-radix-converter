@@ -28,26 +28,24 @@ class RadixConverter
 	/** 62進数 **/
 	const MAP_ALPHANUMERIC_62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-	private $configurations;
+	/**
+	 * @var array 設定値
+	 */
+	private $config;
+
+	/**
+	 * @var mixed 値
+	 */
 	private $value;
 
 	/**
-	 * オブジェクトを初期化します。
+	 * コンストラクタ
 	 *
 	 * @param array 設定配列
-	 * @return $this
 	 */
-	public function initialize(array $configurations = array())
+	public function __construct(array $configurations = array())
 	{
-		$this->configurations = array(
-			'map' => self::MAP_ALPHANUMERIC_62,
-			'acceptLong' => false,
-		);
-		$this->value = null;
-		if (!empty($configurations)) {
-			$this->configurations($configurations);
-		}
-		return $this;
+		$this->initialize($configurations);
 	}
 
 	/**
@@ -62,39 +60,24 @@ class RadixConverter
 	}
 
 	/**
-	 * コンストラクタ
+	 * オブジェクトを初期化します。
 	 *
 	 * @param array 設定配列
+	 * @return $this
 	 */
-	public function __construct(array $configurations = array())
+	public function initialize(array $configurations = array())
 	{
-		$this->initialize($configurations);
-	}
-
-	/**
-	 * 引数なしの場合は全ての設定を配列で返します。
-	 * 引数ありの場合は全ての設定を引数の配列からセットして$thisを返します。
-	 *
-	 * @param array 設定の配列
-	 * @return mixed 設定の配列 または $this
-	 */
-	public function configurations()
-	{
-		switch (func_num_args()) {
-		case 0:
-			return $this->configurations;
-		case 1:
-			$configurations = func_get_arg(0);
-			if (!is_array($configurations)) {
-				throw new \InvalidArgumentException(
-					'The configurations is not Array.');
-			}
+		$this->config = array(
+			'map' => self::MAP_ALPHANUMERIC_62,
+			'acceptLong' => false,
+		);
+		$this->value = null;
+		if (!empty($configurations)) {
 			foreach ($configurations as $name => $value) {
-				$this->setConfiguration($name, $value);
+				$this->config($name, $value);
 			}
-			return $this;
 		}
-		throw new \InvalidArgumentException('Invalid argument count.');
+		return $this;
 	}
 
 	/**
@@ -104,6 +87,7 @@ class RadixConverter
 	 * acceptLong
 	 *     整数の最大値を越える値を扱うかどうかのフラグ。
 	 *     PHP_INT_MAX以上の数値を扱う場合、このフラグを有効にする必要があります。
+	 *     ※GMP関数またはBcMath関数が必要です
 	 *
 	 * map
 	 *     N進数への変換用文字列
@@ -113,11 +97,39 @@ class RadixConverter
 	 */
 	public function config($name)
 	{
+		if (!array_key_exists($name, $this->config)) {
+			throw new \InvalidArgumentException(
+				sprintf('The configuration "%s" does not exists.', $name));
+		}
 		switch (func_num_args()) {
 		case 1:
-			return $this->getConfiguration($name);
+			return $this->config[$name];
 		case 2:
-			$this->setConfiguration($name, func_get_arg(1));
+			$value = func_get_arg(1);
+			if (isset($value)) {
+				switch ($name) {
+				case 'map':
+					if (!is_string($value)) {
+						throw new \InvalidArgumentException(
+							sprintf('The map is invalid type %s.', (is_object($value))
+								? get_class($value) : gettype($value)));
+					}
+					if (strlen($value) !== strlen(count_chars($value, 3))) {
+						throw new \InvalidArgumentException(
+							sprintf('The map "%s" contains same character.', $value));
+					}
+					break;
+				case 'acceptLong':
+					if ($value) {
+						if (!extension_loaded('gmp') && !extension_loaded('bcmath')) {
+							throw new \RuntimeException('BcMath extension and GMP extension is not loaded.');
+						}
+					}
+					$value = (bool)$value;
+					break;
+				}
+				$this->config[$name] = $value;
+			}
 			return $this;
 		}
 		throw new \InvalidArgumentException('Invalid argument count.');
@@ -167,8 +179,8 @@ class RadixConverter
 		case 'encode':
 		case 'decode':
 			$value = (isset($args[0])) ? $args[0] : $this->value;
-			$map   = (isset($args[1])) ? $args[1] : $this->getConfiguration('map');
-			$acceptLong = (isset($args[2])) ? $args[2] : $this->getConfiguration('acceptLong');
+			$map   = (isset($args[1])) ? $args[1] : $this->config('map');
+			$acceptLong = (isset($args[2])) ? $args[2] : $this->config('acceptLong');
 			$this->value = static::$method($value, $map, $acceptLong);
 			return $this;
 		}
@@ -202,7 +214,7 @@ class RadixConverter
 	 *
 	 * @param mixed   変換する数値
 	 * @param string  N進数への変換用文字列 (指定のない場合は 62進数)
-	 * @param boolean 整数の最大値を越える値を扱うかどうか (指定のない場合は FALSE)
+	 * @param boolean 整数の最大値を越える値を扱うかどうか (指定のない場合は FALSE) ※GMP関数またはBcMath関数が必要です
 	 * @return string
 	 */
 	private static function encode($number, $map = null, $acceptLong = null)
@@ -213,8 +225,10 @@ class RadixConverter
 		if (!isset($acceptLong)) {
 			$acceptLong = false;
 		}
-		if ($acceptLong && !extension_loaded('bcmath')) {
-			throw new \RuntimeException('BcMath extension is not loaded.');
+		$gmpLoaded = extension_loaded('gmp');
+		$bcmathLoaded = extension_loaded('bcmath');
+		if ($acceptLong && !$gmpLoaded && !$bcmathLoaded) {
+			throw new \RuntimeException('GMP extension and BcMath extension is not loaded.');
 		}
 		if (is_string($number) && !ctype_digit($number)) {
 			throw new \InvalidArgumentException(
@@ -227,8 +241,16 @@ class RadixConverter
 		$string = '';
 		$length = strlen($map);
 		do {
-			$offset = ($acceptLong) ? bcmod($number, $length) : $number % $length;
-			$number = ($acceptLong) ? bcdiv($number, $length) : $number / $length;
+			if (!$acceptLong) {
+				$offset = $number % $length;
+				$number = $number / $length;
+			} elseif ($gmpLoaded) {
+				$offset = gmp_strval(gmp_mod(gmp_init($number, 10), gmp_init($length, 10)), 10);
+				$number = gmp_strval(gmp_div_q(gmp_init($number, 10), gmp_init($length, 10)), 10);
+			} elseif ($bcmathLoaded) {
+				$offset = bcmod($number, $length);
+				$number = bcdiv($number, $length);
+			}
 			$string .= $map[$offset];
 		} while ($number >= 1);
 		return strrev($string);
@@ -240,7 +262,7 @@ class RadixConverter
 	 *
 	 * @param string  変換する文字列
 	 * @param string  N進数への変換用文字列 (指定のない場合は 62進数)
-	 * @param boolean 整数の最大値を越える値を扱うかどうか (指定のない場合は FALSE)
+	 * @param boolean 整数の最大値を越える値を扱うかどうか (指定のない場合は FALSE) ※GMP関数またはBcMath関数が必要です
 	 * @return mixed string|int
 	 */
 	private static function decode($string, $map = null, $acceptLong = null)
@@ -251,8 +273,10 @@ class RadixConverter
 		if (!isset($acceptLong)) {
 			$acceptLong = false;
 		}
-		if ($acceptLong && !extension_loaded('bcmath')) {
-			throw new \RuntimeException('BcMath extension is not loaded.');
+		$gmpLoaded = extension_loaded('gmp');
+		$bcmathLoaded = extension_loaded('bcmath');
+		if ($acceptLong && !$gmpLoaded && !$bcmathLoaded) {
+			throw new \RuntimeException('GMP extension and BcMath extension is not loaded.');
 		}
 		$number = 0;
 		$length = strlen($map);
@@ -262,69 +286,15 @@ class RadixConverter
 				throw new \InvalidArgumentException(
 					sprintf('The value "%s" includes invalid character "%s".', $string, $char));
 			}
-			if ($acceptLong) {
-				$number = bcadd($number, bcmul($n, bcpow($length, $i)));
-			} else {
+			if (!$acceptLong) {
 				$number += $n * pow($length, $i);
+			} elseif ($gmpLoaded) {
+				$number = gmp_strval(gmp_add(gmp_init($number, 10), gmp_mul(gmp_init($n, 10), gmp_pow(gmp_init($length, 10), $i))), 10);
+			} elseif ($bcmathLoaded) {
+				$number = bcadd($number, bcmul($n, bcpow($length, $i)));
 			}
 		}
 		return $number;
-	}
-
-	/**
-	 * 指定された設置の値をセットします。
-	 *
-	 * acceptLong
-	 *     整数の最大値を越える値を扱うかどうかのフラグ。
-	 *     PHP_INT_MAX以上の数値を扱う場合、このフラグを有効にする必要があります。
-	 *
-	 * map
-	 *     N進数への変換用文字列
-	 *
-	 * @param string 設定名
-	 * @param mixed  設定値
-	 */
-	private function setConfiguration($name, $value)
-	{
-		if (!array_key_exists($name, $this->configurations)) {
-			throw new \InvalidArgumentException(
-				sprintf('The configuration "%s" does not exists.', $name));
-		}
-		switch ($name) {
-		case 'map':
-			if (!is_string($value)) {
-				throw new \InvalidArgumentException(
-					sprintf('The map is invalid type %s.', (is_object($value))
-						? get_class($value) : gettype($value)));
-			}
-			if (strlen($value) !== strlen(count_chars($value, 3))) {
-				throw new \InvalidArgumentException(
-					sprintf('The map "%s" contains same character.', $value));
-			}
-			break;
-		case 'acceptLong':
-			if ($value && !extension_loaded('bcmath')) {
-				throw new \RuntimeException('BcMath extension is not loaded.');
-			}
-			$value = (bool)$value;
-			break;
-		}
-		$this->configurations[$name] = $value;
-	}
-
-	/**
-	 * 指定された設置の値を返します。
-	 *
-	 * @param string 設定名
-	 * @return mixed  設定値
-	 */
-	private function getConfiguration($name)
-	{
-		if (!array_key_exists($name, $this->configurations)) {
-			throw new \InvalidArgumentException(
-				sprintf('The configuration "%s" does not exists.', $name));
-		}
-		return $this->configurations[$name];
 	}
 
 }
