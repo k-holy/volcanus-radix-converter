@@ -5,7 +5,7 @@
  * @copyright 2011-2013 k-holy <k.holy74@gmail.com>
  * @license The MIT License (MIT)
  */
-namespace Volcanus\RadixConverter\Tests;
+namespace Volcanus\RadixConverter\Test;
 
 use Volcanus\RadixConverter\RadixConverter;
 
