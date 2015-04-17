@@ -11,12 +11,9 @@
         }
     ],
     "autoload": {
-        "psr-0": { "Volcanus\\RadixConverter": "src/" }
+        "psr-4": { "Volcanus\\RadixConverter\\": "src/" }
     },
     "require": {
         "php": ">=5.3.3"
-    },
-    "require-dev": {
-        "satooshi/php-coveralls": "dev-master"
     }
 }
