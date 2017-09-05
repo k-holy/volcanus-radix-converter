@@ -14,8 +14,11 @@ use Volcanus\RadixConverter\RadixConverter;
  *
  * @author k.holy74@gmail.com
  */
-class RadixConverterTest extends \PHPUnit_Framework_TestCase
+class RadixConverterTest extends \PHPUnit\Framework\TestCase
 {
+
+    /** @var \Volcanus\RadixConverter\RadixConverter */
+    protected $converter;
 
 	public function setUp()
 	{
@@ -36,7 +39,7 @@ class RadixConverterTest extends \PHPUnit_Framework_TestCase
 
 	public function testEncode()
 	{
-		$this->assertEquals('0', $this->converter->encode(0)->value());
+        $this->assertEquals('0', $this->converter->encode(0)->value());
 		$this->assertEquals('1', $this->converter->encode(1)->value());
 		$this->assertEquals('a', $this->converter->encode(10)->value());
 		$this->assertEquals('10', $this->converter->encode(62)->value());
@@ -78,36 +81,24 @@ class RadixConverterTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals(2147483647, RadixConverter::decode('2lkCB1'));
 	}
 
-	/**
-	 * @requires extension bcmath
-	 */
 	public function testEncodeAcceptLongOn32Bit()
 	{
 		$this->converter->config('acceptLong', true);
 		$this->assertEquals('2lkCB2', $this->converter->encode('2147483648')->value());
 	}
 
-	/**
-	 * @requires extension bcmath
-	 */
 	public function testDecodeAcceptLongOn32Bit()
 	{
 		$this->converter->config('acceptLong', true);
 		$this->assertEquals('2147483648', $this->converter->decode('2lkCB2')->value());
 	}
 
-	/**
-	 * @requires extension bcmath
-	 */
 	public function testEncodeAcceptLongOn64Bit()
 	{
 		$this->converter->config('acceptLong', true);
 		$this->assertEquals('aZl8N0y58M8', $this->converter->encode('9223372036854775808')->value());
 	}
 
-	/**
-	 * @requires extension bcmath
-	 */
 	public function testDecodeAcceptLongOn64Bit()
 	{
 		$this->converter->config('acceptLong', true);

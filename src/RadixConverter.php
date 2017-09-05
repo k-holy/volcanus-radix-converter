@@ -41,7 +41,7 @@ class RadixConverter
 	/**
 	 * コンストラクタ
 	 *
-	 * @param array 設定配列
+	 * @param array $configurations 設定配列
 	 */
 	public function __construct(array $configurations = array())
 	{
@@ -51,8 +51,8 @@ class RadixConverter
 	/**
 	 * 新しいインスタンスを生成して返します。
 	 *
-	 * @param array 設定配列
-	 * @return self
+	 * @param array $configurations 設定配列
+	 * @return static
 	 */
 	public static function instance(array $configurations = array())
 	{
@@ -62,7 +62,7 @@ class RadixConverter
 	/**
 	 * オブジェクトを初期化します。
 	 *
-	 * @param array 設定配列
+	 * @param array $configurations 設定配列
 	 * @return $this
 	 */
 	public function initialize(array $configurations = array())
@@ -92,7 +92,7 @@ class RadixConverter
 	 * map
 	 *     N進数への変換用文字列
 	 *
-	 * @param string 設定名
+	 * @param string $name 設定名
 	 * @return mixed 設定値 または $this
 	 */
 	public function config($name)
@@ -139,7 +139,7 @@ class RadixConverter
 	 * 引数なしの場合は値を返します。
 	 * 引数1の場合は変換する文字列を値にセットして$thisを返します。
 	 *
-	 * @param string 変換する文字列
+	 * @param string (optional) 変換する文字列
 	 * @return mixed
 	 */
 	public function value()
@@ -157,6 +157,7 @@ class RadixConverter
 			$this->value = $value;
 			return $this;
 		}
+        throw new \InvalidArgumentException('Invalid argument count.');
 	}
 
 	/**
@@ -169,10 +170,14 @@ class RadixConverter
 		return (string)$this->value;
 	}
 
-	/**
-	 * インスタンスメソッド encode(), decode()
-	 * メソッドチェーンのため$thisを返します。
-	 */
+    /**
+     * インスタンスメソッド encode(), decode()
+     * メソッドチェーンのため$thisを返します。
+     *
+     * @param string $method
+     * @param array $args
+     * @return $this
+     */
 	public function __call($method, $args)
 	{
 		switch ($method) {
@@ -190,6 +195,10 @@ class RadixConverter
 
 	/**
 	 * スタティックメソッド encode(), decode()
+     *
+     * @param string $method
+     * @param array $args
+     * @return mixed
 	 */
 	public static function __callStatic($method, $args)
 	{
@@ -209,13 +218,14 @@ class RadixConverter
 			sprintf('The method "%s" is not defined.', $method));
 	}
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
 	/**
 	 * 数値を文字列に変換して返します。
 	 *
-	 * @param mixed   変換する数値
-	 * @param string  N進数への変換用文字列 (指定のない場合は 62進数)
-	 * @param boolean 整数の最大値を越える値を扱うかどうか (指定のない場合は FALSE) ※GMP関数またはBcMath関数が必要です
-	 * @return string
+	 * @param mixed $number  変換する数値
+	 * @param string $map N進数への変換用文字列 (指定のない場合は 62進数)
+	 * @param boolean $acceptLong 整数の最大値を越える値を扱うかどうか (指定のない場合は FALSE) ※GMP関数またはBcMath関数が必要です
+	 * @return string|$this
 	 */
 	private static function encode($number, $map = null, $acceptLong = null)
 	{
@@ -251,19 +261,22 @@ class RadixConverter
 				$offset = bcmod($number, $length);
 				$number = bcdiv($number, $length);
 			}
-			$string .= $map[$offset];
+			if (isset($offset) && isset($map[$offset])) {
+                $string .= $map[$offset];
+            }
 		} while ($number >= 1);
 		return strrev($string);
 	}
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
 	/**
 	 * 文字列を数値に変換して返します。
 	 * 整数の最大値を越える値を扱う場合は、文字列型で返します。
 	 *
-	 * @param string  変換する文字列
-	 * @param string  N進数への変換用文字列 (指定のない場合は 62進数)
-	 * @param boolean 整数の最大値を越える値を扱うかどうか (指定のない場合は FALSE) ※GMP関数またはBcMath関数が必要です
-	 * @return mixed string|int
+	 * @param string $string 変換する文字列
+	 * @param string $map N進数への変換用文字列 (指定のない場合は 62進数)
+	 * @param boolean $acceptLong 整数の最大値を越える値を扱うかどうか (指定のない場合は FALSE) ※GMP関数またはBcMath関数が必要です
+     * @return string|int|$this
 	 */
 	private static function decode($string, $map = null, $acceptLong = null)
 	{
