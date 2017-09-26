@@ -1,22 +1,24 @@
 {
-    "name": "volcanus/radix-converter",
-    "homepage": "https://github.com/k-holy/volcanus-radix-converter",
-    "type": "library",
-    "version": "0.2.2",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "k-holy",
-            "email": "k.holy74@gmail.com"
-        }
-    ],
-    "autoload": {
-        "psr-4": { "Volcanus\\RadixConverter\\": "src/" }
-    },
-    "require": {
-        "php": ">=5.3.9"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^4.8"
+  "name": "volcanus/radix-converter",
+  "homepage": "https://github.com/k-holy/volcanus-radix-converter",
+  "type": "library",
+  "version": "0.2.2",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "k-holy",
+      "email": "k.holy74@gmail.com"
     }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Volcanus\\RadixConverter\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=5.3.9"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^4.8"
+  }
 }
